@@ -67,9 +67,7 @@ mount "${part_prefix}1" /mnt/boot
 echo "Generating hardware config..."
 mkdir -p /mnt/etc/nixos
 
-# Configure channels
-nix-channel --add https://nixos.org/channels/nixos-unstable nixos
-nix-channel --update
+
 
 # Generate hardware-configuration.nix
 nixos-generate-config --root /mnt
