@@ -1,150 +1,237 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [ 
+    ./hardware-configuration.nix
+    <home-manager/nixos>
+  ];
 
- 
+  # Nix Settings & Experimental Features
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nixpkgs.config.allowUnfree         = true;
+  nixpkgs.config.allowUnfree = true;
 
   ####################
   # Boot & Kernel    #
   ####################
-  boot.loader.systemd-boot.enable      = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout                  = 0;
-  boot.loader.limine.maxGenerations    = 5;
-  #hardware.amdgpu.initrd.enable = false;
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+    grub.useOSProber = true;
+    timeout = 0;
+  };
 
-  boot.kernelParams = [ "quiet" ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [ "quiet" "zswap.enabled=1" "zswap.compressor=zstd" "zswap.zpool=zsmalloc" "usbcore.autosuspend=-1" ];
+  
   boot.kernel.sysctl = {
     "kernel.split_lock_mitigate" = 0;
-    "kernel.nmi_watchdog"        = 0;
-    #"kernel.sched_bore"          = "1";
+    "kernel.nmi_watchdog" = 0;
+    "vm.swappiness" = 100;
   };
 
   boot.initrd = {
-    systemd.enable   = true;
-    kernelModules    = [ ];
-    verbose          = false;
+    systemd.enable = true;
+    verbose = false;
   };
-  boot.plymouth.enable     = true;
-  boot.consoleLogLevel     = 0;
-  systemd.settings.Manager = {DefaultTimeoutStopSec="5s";};
 
-  #Determinate Linux
+  boot.plymouth.enable = true;
+  boot.consoleLogLevel = 0;
 
+  ####################
+  # Graphics & Sound #
+  ####################
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      vpl-gpu-rt
+      intel-media-driver 
+      intel-ocl
+      intel-compute-runtime
+      intel-gmmlib
+    ];
+  };
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  ####################
+  # Desktop & System #
+  ####################
+  services.displayManager.cosmic-greeter.enable = true;
+  services.desktopManager.cosmic.enable = true;
+  services.automatic-timezoned.enable = true;
   
-  ################
-  # FileSystems  #
-  ################
+  networking = {
+    networkmanager.enable = true;
+    firewall.enable = true;
+    hostName = "nixos";
+  };
+
   fileSystems."/" = {
     options = [ "compress=zstd" ];
   };
 
-  ############
-  # Network  #
-  ############
-  networking = {
-    networkmanager.enable = true;
-    firewall.enable       = false;
-    hostName              = "nixos";
-  };
+  swapDevices = [ {
+    device = "/swapfile";
+    size = 16384; 
+    priority = 10;
+  } ];
 
-  
-  #################
-  # Sound & RTKit #
-  #################
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable         = true;
-    alsa.enable    = true;
-    alsa.support32Bit = true;
-    pulse.enable   = true;
-  };
-
-  ########################
-  # Desktop   #
-  ########################
-  services.displayManager.cosmic-greeter.enable = true;
-  services.desktopManager.cosmic.enable = true;
-
-
-  ########################
-  # Programs & Services    #
-  ########################
-  services.automatic-timezoned.enable = true;
-  zramSwap.enable = true;
-  zramSwap.algorithm = "zstd";
-  services.flatpak.enable = true;
-  services.fwupd.enable = true;
-  documentation.nixos.enable = false;  
-  environment.systemPackages = [
-    pkgs.helix
-    pkgs.btop
-    pkgs.ghostty
-    pkgs.git
-    pkgs.gh
-    pkgs.fish
-    pkgs.dua
-    pkgs.bat
-    pkgs.lsd
-    pkgs.zoxide
+  ####################
+  # Programs (System)#
+  ####################
+  environment.systemPackages = with pkgs; [
+    btop
+    git
+    gh
+    dua
+    bat
+    lsd
+    gnupg
+    git-remote-gcrypt
+    pinentry-curses
+    podman-compose
+    podman-tui
   ];
-  
-  
+
   programs = {
     appimage = { enable = true; binfmt = true; };
-    fish     = { enable = true; };
-    mosh     = { enable = true; };
-    tmux     = { enable = true; };
-     };
-
-  environment.sessionVariables = {
-    PROTON_USE_NTSYNC       = "1";
-    ENABLE_HDR_WSI          = "1";
-    DXVK_HDR                = "1";
-    PROTON_ENABLE_AMD_AGS   = "1";
-    PROTON_ENABLE_NVAPI     = "1";
-    ENABLE_GAMESCOPE_WSI    = "1";
-    STEAM_MULTIPLE_XWAYLANDS = "1";
+    mosh.enable = true;
+    tmux.enable = true;
+    steam.enable = true;
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = false;
+      pinentryPackage = pkgs.pinentry-curses;
+      settings = {
+      # Use mkForce to resolve the conflict with the internal NixOS module
+      pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses";
+       };
+    };
   };
 
-  ###################
-  # Virtualization  #
-  ###################
-  virtualisation.docker.enable      = true;
-  virtualisation.docker.enableOnBoot = false;
-  virtualisation.libvirtd.enable = true;
+  services.flatpak.enable = true;
+  services.fwupd.enable = true;
+  documentation.nixos.enable = false;
 
-  ###############
-  # Users       #
-  ###############
+  ####################
+  # Virtualization   #
+  ####################
+  virtualisation.containers.enable = true;
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
+  ####################
+  # Fonts            #
+  ####################
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      jetbrains-mono
+      nerd-fonts.jetbrains-mono
+    ];
+    fontconfig.defaultFonts.monospace = [ "JetBrainsMono" ];
+  };
+
+  ####################
+  # User Account     #
+  ####################
   users.users.nix = {
     isNormalUser = true;
-    shell = pkgs.fish;
-    description  = "nix user";
-    extraGroups  = [ "networkmanager" "wheel" "docker" "video" "seat" "audio" "libvirtd"];
-    password     = "steamos";
+    shell = pkgs.nushell;
+    description = "nix user";
+    extraGroups = [ "networkmanager" "wheel" "video" "seat" "audio" ];
   };
 
-  #################
-  # Security      #
-  #################
-  #security.sudo.wheelNeedsPassword = false;
-  security.polkit.enable           = true;
-  #services.seatd.enable            = true;
-  #services.openssh.enable          = true;
+  ####################
+  # Home Manager     #
+  ####################
+  home-manager.users.nix = { pkgs, ... }: {
+    home.stateVersion = "26.05";
+    
+    home.packages = with pkgs; [
+      helix
+      carapace
+      zoxide
+      atuin
+      fzf
+      eza
+      starship
+      zellij
+    ];
 
-  ######################
-  ######################
+   programs.nushell = {
+      enable = true;
+      configFile.text = ''
+        $env.config = {
+          show_banner: false
+          edit_mode: vi
+        }
 
-  ########################
-  # System State Version #
-  ########################
+        # --- Custom Functions from config.nu ---
+        
+        # A helper to sync your encrypted Obsidian vault
+        def push [message?: string] {
+            $env.GPG_TTY = (tty)
+            gpg-connect-agent updatestartuptty /bye | ignore
+
+            print "Staging changes..."
+            git add -A
+
+            let commit_msg = if ($message | is-empty) { 
+                $"(date now | format date '%Y-%m-%d %H:%M:%S')" 
+            } else { 
+                $message 
+            }
+
+            print $"Committing: ($commit_msg)"
+            git commit -m $commit_msg
+            git push origin main
+        }
+        # Ensure GPG/SSH plumbing is correct on startup
+        $env.SSH_AUTH_SOCK = $"/run/user/(id -u)/gcr/ssh"
+        $env.GPG_TTY = (tty)
+        # Refresh the agent's TTY mapping on every new shell start
+        gpg-connect-agent updatestartuptty /bye | ignore
+
+        
+        # Quick Ubuntu container environment
+        def ubuntu [] {
+            podman run --rm -it -v $"($env.PWD):/data" -w /data ubuntu:latest bash
+        }
+      '';
+      shellAliases = {
+        ls = "eza --icons";
+        ll = "eza -l --icons --git";
+      };
+    };
+
+    # Shell and CLI tool integrations
+    programs.starship = { enable = true; enableNushellIntegration = true; };
+    programs.zoxide = { enable = true; enableNushellIntegration = true; };
+    programs.atuin = { enable = true; enableNushellIntegration = true; flags = [ "--disable-up-arrow" ]; };
+    
+    # fzf integration is handled automatically or manually in Nushell config
+    programs.fzf.enable = true; 
+    
+    programs.eza = { enable = true; enableNushellIntegration = true; };
+    programs.zellij.enable = true;
+
+    xdg.configFile."ghostty/config".text = ''
+      theme = catppuccin-mocha
+      font-family = "JetBrainsMono Nerd Font"
+      font-size = 12
+      command = nu
+    '';
+  };
+
   system.stateVersion = "26.05";
 }
