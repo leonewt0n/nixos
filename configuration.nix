@@ -175,7 +175,8 @@
           show_banner: false
           edit_mode: vi
         }
-
+        
+        
         # --- Custom Functions from config.nu ---
         
         # A helper to sync your encrypted Obsidian vault
@@ -217,13 +218,17 @@
     # Shell and CLI tool integrations
     programs.starship = { enable = true; enableNushellIntegration = true; };
     programs.zoxide = { enable = true; enableNushellIntegration = true; };
-    programs.atuin = { enable = true; enableNushellIntegration = true; flags = [ "--disable-up-arrow" ]; };
+    programs.atuin = { enable = true; enableNushellIntegration = true; flags = [  ]; };
     
     # fzf integration is handled automatically or manually in Nushell config
     programs.fzf.enable = true; 
     
     programs.eza = { enable = true; enableNushellIntegration = true; };
     programs.zellij.enable = true;
+    programs.carapace = {
+    enable = true;
+    enableNushellIntegration = true;
+    };
 
     xdg.configFile."ghostty/config".text = ''
       theme = catppuccin-mocha
