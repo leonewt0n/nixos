@@ -3,12 +3,24 @@
 {
   imports = [ 
     ./hardware-configuration.nix
-    <home-manager/nixos>
+   # <home-manager/nixos>
   ];
 
-  # Nix Settings & Experimental Features
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
+  nix.settings = {
+    # 2. Build Parallelism (Compiling packages)
+    # "auto" sets it to the number of logical cores (Threads)
+    max-jobs = "auto";
+    eval-cores = 0;
+    
+    # 3. Download/Fetch Parallelism
+    # Maximum number of parallel TCP connections for binary caches
+    http-connections = 50;
+    
+    # 4. Store Optimization (Optional but recommended)
+    # Deduplicates identical files in the store automatically
+    auto-optimise-store = true;
+  };
 
   ####################
   # Boot & Kernel    #
@@ -124,7 +136,6 @@
   services.flatpak.enable = true;
   services.fwupd.enable = true;
   documentation.nixos.enable = false;
-
   ####################
   # Virtualization   #
   ####################
@@ -162,6 +173,11 @@
   ####################
   home-manager.users.nix = { pkgs, ... }: {
     home.stateVersion = "26.05";
+    manual = {
+      manpages.enable = false;
+      html.enable = false;
+      json.enable = false;
+    };
     
     home.packages = with pkgs; [
       helix
@@ -181,6 +197,11 @@
           show_banner: false
           edit_mode: vi
         }
+
+        def update [] {
+          sudo nix flake update --flake /etc/nixos/
+          sudo nixos-rebuild switch --flake /etc/nixos/
+                }
         
         
         # --- Custom Functions from config.nu ---
