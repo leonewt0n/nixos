@@ -1,3 +1,5 @@
+# Personal Config File for Intel 265K System with Intel GPU
+
 # NixOS Pin TPM LUKS with Lanzaboote Secure Boot
 
 https://nix-community.github.io/lanzaboote/getting-started/prepare-your-system.html
