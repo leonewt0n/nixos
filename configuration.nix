@@ -21,9 +21,8 @@
   };
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelParams = [ "quiet" "zswap.enabled=1" "zswap.compressor=zstd" "zswap.zpool=zsmalloc" "usbcore.autosuspend=-1" ];
-  
-  boot.kernel.sysctl = {
+  boot.kernelParams = [ "quiet" "zswap.enabled=1" "zswap.compressor=zstd" "zswap.zpool=zsmalloc" "usbcore.autosuspend=-1" "i915.force_probe=!7d67"  "xe.force_probe=7d67" "xe.enable_psr=0" ];
+   boot.kernel.sysctl = {
     "kernel.split_lock_mitigate" = 0;
     "kernel.nmi_watchdog" = 0;
     "vm.swappiness" = 100;
@@ -46,9 +45,8 @@
     extraPackages = with pkgs; [
       vpl-gpu-rt
       intel-media-driver 
-      intel-ocl
       intel-compute-runtime
-      intel-gmmlib
+      #intel-gmmlib
     ];
   };
 
@@ -65,6 +63,14 @@
   services.displayManager.cosmic-greeter.enable = true;
   services.desktopManager.cosmic.enable = true;
   services.automatic-timezoned.enable = true;
+  # 2. Configure Auto-Login
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = "nix"; # Replace with your actual username
+  };
+
+  # 3. Ensure the session is set to COSMIC
+  services.displayManager.defaultSession = "cosmic";
   
   networking = {
     networkmanager.enable = true;
