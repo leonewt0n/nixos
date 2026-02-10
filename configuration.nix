@@ -19,8 +19,6 @@
   boot = {
     loader = {
       systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-      grub.useOSProber = true;
       timeout = 0;
     };
     kernelPackages = pkgs.linuxPackages_latest;
@@ -31,6 +29,8 @@
       "zswap.zpool=zsmalloc"
       "usbcore.autosuspend=-1"
       "i915.enable_guc=3"
+      "8250.nr_uarts=0"
+      "rd.systemd.show_status=false"
           ];
 
     kernel.sysctl = {
@@ -41,6 +41,7 @@
     };
 
     initrd.systemd.enable = true;
+    initrd.availableKernelModules = [ "nvme" "xhci_pci" "usbhid" ];
     initrd.verbose = false;
     plymouth.enable = true;
     consoleLogLevel = 0;
@@ -67,6 +68,47 @@
   };
 
   services = {
+    resolved.enable = false;
+    blocky = {
+   enable = true;
+    settings = {
+    # Port where Blocky listens for your local devices
+    ports.dns = 53;
+
+    bootstrapDns = {
+      upstream = "https://cloudflare-dns.com/dns-query";
+      ips = [ "1.1.1.1" ];
+    };
+
+    upstreams = {
+      # Defining DoT providers
+      groups.default = [
+        "https://cloudflare-dns.com/dns-query"
+        "https://dns.quad9.net/dns-query"
+      ];
+      # 'parallel_best' sends queries to all upstreams and takes the fastest reply
+      strategy = "parallel_best";
+    };
+
+    # Caching configuration for speed
+    caching = {
+      minTime = "2h";      # Keep even short-lived records for 2 hours
+      maxTime = "12h";
+      prefetching = true;  # Refresh popular domains before they expire
+    };
+
+    # Optional: Add ad-blocking since you're using Blocky anyway
+    blocking = {
+      blockType = "zeroIp";
+      denylists = {
+        ads = [ "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ];
+      };
+      clientGroupsBlock = {
+        default = [ "ads" ];
+      };
+    };
+  };
+  };
     displayManager.autoLogin = {
       enable = true;
       user = "nix";
@@ -93,8 +135,28 @@
   networking = {
     hostName = "nixos";
     useNetworkd = true;
+    nameservers = [ "127.0.0.1" ];
     networkmanager.enable = false;
     wireless.enable = lib.mkForce false;
+    firewall = {
+    enable = true;
+  
+    trustedInterfaces = [ "tailscale0" ];
+
+    allowedUDPPorts = [ 41641 ]; 
+
+    # 3. Security: Prevent DNS Bypassing (Your DoH protection)
+  extraCommands = ''
+    # Allow local lookups to your Blocky instance
+    iptables -A OUTPUT -d 127.0.0.1 -p udp --dport 53 -j ACCEPT
+    iptables -A OUTPUT -d 127.0.0.1 -p tcp --dport 53 -j ACCEPT
+    
+    # BLOCK all other outgoing DNS to prevent apps from bypassing Blocky
+    iptables -A OUTPUT -p udp --dport 53 -j REJECT
+    iptables -A OUTPUT -p tcp --dport 53 -j REJECT
+    iptables -A OUTPUT -p tcp --dport 853 -j REJECT
+  '';
+};
   };
 
   systemd = {
@@ -119,9 +181,7 @@
   ];
 
   programs = {
-    appimage = { enable = true; binfmt = true; };
     mosh.enable = true;
-    tmux.enable = true;
     steam.enable = true;
 
     gnupg.agent = {
@@ -175,7 +235,6 @@
       zoxide
       atuin
       fzf
-      eza
       starship
       zellij
     ];
@@ -216,8 +275,8 @@
       '';
 
       shellAliases = {
-        ls = "eza --icons";
-        ll = "eza -l --icons --git";
+        #ls = "eza --icons";
+        #ll = "eza -l --icons --git";
       };
     };
 
@@ -225,7 +284,6 @@
     programs.zoxide = { enable = true; enableNushellIntegration = true; };
     programs.atuin = { enable = true; enableNushellIntegration = true; flags = []; };
     programs.fzf.enable = true;
-    programs.eza = { enable = true; enableNushellIntegration = true; };
     programs.zellij.enable = true;
     programs.carapace = {
       enable = true;
