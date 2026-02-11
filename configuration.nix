@@ -174,7 +174,7 @@
   time.timeZone = "America/Los_Angeles";
 
   environment.systemPackages = with pkgs; [
-    #btop
+    btop
     git
     gh
     gnupg
