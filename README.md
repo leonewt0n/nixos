@@ -17,8 +17,8 @@ Afterwards turn setup mode off and enable secure boot.
 
 # Replace in the config file with your specific IDs
 ```
-initrd.luks.devices."luks-682ff252-aeba-4582-853d-ed17b92ec0fa" = {
-device = "/dev/nvme0n1p1"; # Your encrypted partition
+initrd.luks.devices."luks-682ff252-XXXX-XXXX-XXXX-XXXXXXX" = {
+device = "/dev/nvme0n1pXX"; # Your encrypted partition
 ```
 ```
 ❯ : lsblk -f
