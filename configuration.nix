@@ -18,7 +18,13 @@
   hardware.cpu.intel.updateMicrocode = true;
   boot = {
     loader = {
-      systemd-boot.enable = true;
+        limine = {
+        enable = true;
+        efiSupport = true;
+        maxGenerations = 10;
+        secureBoot.enable = true;
+    };
+      systemd-boot.enable = lib.mkForce false;
       timeout = 0;
     };
     kernelPackages = pkgs.linuxPackages_latest;
@@ -41,9 +47,12 @@
     };
 
     initrd.systemd.enable = true;
-    initrd.availableKernelModules = [ "nvme" "xhci_pci" "usbhid" ];
+    initrd.availableKernelModules = [ "nvme" "xhci_pci" "usbhid" "tpm_tis" ];
+    initrd.luks.devices."root" = {
+    device = "/dev/nvme0n1p1"; # Your encrypted partition
+    crypttabExtraOpts = [ "tpm2-device=auto" ];
+  };
     initrd.verbose = false;
-    plymouth.enable = true;
     consoleLogLevel = 0;
   };
 
@@ -109,11 +118,7 @@
     };
   };
   };
-    displayManager.autoLogin = {
-      enable = true;
-      user = "nix";
-    };
-    pipewire = {
+     pipewire = {
       enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
@@ -178,6 +183,7 @@
     pinentry-curses
     podman-compose
     podman-tui
+    sbctl
   ];
 
   programs = {
@@ -280,6 +286,7 @@
         try {
           print $"(ansi b)--- Syncing with Git ---(ansi reset)"
           cd $vault_path
+          git pull --rebase
           git add .
           git commit -m $"Vault Update: ($timestamp)"
           git push
