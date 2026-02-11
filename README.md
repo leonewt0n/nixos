@@ -41,5 +41,5 @@ nvme0n1
 
 ```
 sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p1
-sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2+4+7 /dev/nvme0n1p1
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2 /dev/nvme0n1p1
 ```
