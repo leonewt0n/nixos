@@ -53,8 +53,7 @@
     initrd.systemd.enable = true;
     initrd.kernelModules = [ "nvme" "xhci_pci" "usbhid" "tpm_tis" "tpm_crb" ];
     initrd.luks.devices."luks-682ff252-aeba-4582-853d-ed17b92ec0fa" = {
-    device = "/dev/nvme0n1p1"; # Your encrypted partition
-    crypttabExtraOpts = [ "tpm2-device=auto"  "x-systemd.device-timeout=10s" ];
+        crypttabExtraOpts = [ "tpm2-device=auto"  "x-systemd.device-timeout=5s" "x-initrd.attach" ];
   };
     initrd.verbose = false;
     consoleLogLevel = 0;
