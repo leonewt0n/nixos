@@ -309,12 +309,5 @@
       enable = true;
       enableNushellIntegration = true;
     };
-
-    xdg.configFile."ghostty/config".text = ''
-      theme = catppuccin-mocha
-      font-family = "JetBrainsMono Nerd Font"
-      font-size = 12
-      command = nu
-    '';
   };
 }
