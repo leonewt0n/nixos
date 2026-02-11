@@ -176,12 +176,9 @@
   environment.systemPackages = with pkgs; [
     btop
     git
-    gh
     gnupg
     git-remote-gcrypt
     pinentry-curses
-    podman-compose
-    podman-tui
     sbctl
   ];
 
