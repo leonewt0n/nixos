@@ -15,9 +15,31 @@ You can now rebuild your system with this option enabled.
 
 Afterwards turn setup mode off and enable secure boot.
 
+# Replace in the config file with your specific IDs
 ```
-lsblk
-sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p1
-sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2 /dev/nvme0n1p1
+initrd.luks.devices."luks-682ff252-aeba-4582-853d-ed17b92ec0fa" = {
+device = "/dev/nvme0n1p1"; # Your encrypted partition
+```
+```
+❯ : lsblk -f
+NAME                         FSTYPE      FSVER LABEL     UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+sda                          zfs_member  5000  boot-pool 13019466780310741369
+├─sda1                       vfat        FAT32           E4C9-5557
+├─sda2
+├─sda3                       ntfs                        CC34CDA134CD8EC0
+└─sda4                       ntfs                        E0F65007F64FDC82
+nvme0n1
+├─nvme0n1p1                  crypto_LUKS 2               682ff252-aeba-4582-853d-ed17b92ec0fa
+│ ├─luks-682ff252-aeba-4582-853d-ed17b92ec0fa
+│ │                          btrfs                       5de7dbab-adfd-40c1-9fea-df6656f3bb07    2.2T    40% /home
+│ │                                                                                                          /nix/store
+│ │                                                                                                          /
+│ └─root                     btrfs                       5de7dbab-adfd-40c1-9fea-df6656f3bb07
+└─nvme0n1p2                  vfat        FAT32           CCA5-9CFF                             631.4M    47% /boot
 
+```
+
+```
+sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p1
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2+4+7 /dev/nvme0n1p1
 ```
