@@ -175,9 +175,6 @@
     btop
     git
     gh
-    dua
-    bat
-    lsd
     gnupg
     git-remote-gcrypt
     pinentry-curses
