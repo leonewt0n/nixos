@@ -1,5 +1,5 @@
 {
-  description = "NixOS Unstable Configuration with Determinate Nix";
+  description = "Intel 265K System with Intel GPU + Lanzaboote Secureboot w/ TPM LUKS unlock";
 
   inputs = {
     # 1. Use the latest unstable Nix packages
