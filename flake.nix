@@ -5,6 +5,12 @@
     # 1. Use the latest unstable Nix packages
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     #nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
+
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.0.0";
+      # Optional but recommended to limit the size of your system closure.
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     
 
     # 2. Determinate Systems Flake (Improved Nix settings, caching, daemon)
@@ -17,13 +23,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, determinate, ... }@inputs: {
+  outputs = { self, nixpkgs, home-manager, lanzaboote, determinate, ... }@inputs: {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; }; # Pass inputs to modules
       modules = [
         # Your main configuration file
         ./configuration.nix
+
+        lanzaboote.nixosModules.lanzaboote
         
         # The Determinate Nix module (Enables Flakes, Determinate Caching, etc.)
         determinate.nixosModules.default
