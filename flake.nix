@@ -400,6 +400,7 @@
                   }
 
                   def update [] {
+                    sudo cp --recursive ~/git/nixos/* /etc/nixos/
                     sudo nix flake update --flake /etc/nixos/
                     sudo nixos-rebuild switch --flake /etc/nixos/
                   }
