@@ -1,4 +1,12 @@
 # Impermanence on Intel 265K System with Intel GPU + Lanzaboote Secureboot w/ TPM LUKS unlock + Yubikey login/sudo
+# Security Benefits that destroy other Linux Distros
+* Users are immutable
+* Fresh root and home folder on boot (whitelisted files/folders)
+* Root account locked
+* Yubikey login and sudo
+* Limited binaries in system path
+* FHS non compliance renders nondeclared appimages and binaries useless
+* Single Source of Truth via flake.nix for system synced to Github
 
 # Install
 * 2 Partions: root and boot
