@@ -36,24 +36,19 @@ sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p1
 sudo systemd-cryptenroll /dev/nvme0n1p1 --tpm2-device=auto --tpm2-pcrs=0+2+7
 ```
 
-# RECOVERY
+# RECOVERY/INSTALL
 
 ```
-cd /mnt-btrfs
+cryptsetup /dev/mapper/enc /mnt
+cd /mnt
 
-    # Delete the old system root (if it exists) to start fresh
-    # If you have an "@" subvolume instead, rename or delete it.
-    btrfs subvolume delete root 2>/dev/null || mv @ old_root_backup
-
-    # Create the fresh subvolumes
-    btrfs subvolume create root
-    btrfs subvolume create clean-root
-
-    # Ensure these exist (do not delete them if they have data!)
-    # If your home data is in "@home", rename it to "home" now:
-    # mv @home home
-    [ ! -d nix ] && btrfs subvolume create nix
-    [ ! -d persist ] && btrfs subvolume create persistent
+# Delete the old system root (if it exists) to start fresh
+# Create the fresh subvolumes
+btrfs subvolume create root
+btrfs subvolume create clean-root
+btrfs subvolume create nix
+btrfs subvolume create persistent
+umount /mnt
 ```
 Step 2: Mount Targets for Installation
 
