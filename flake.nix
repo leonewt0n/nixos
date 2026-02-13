@@ -357,6 +357,7 @@
                 ".local/share/flatpak"
                 ".local/Steam"
                 ".local/share/Steam"
+                ".local/share/atuin"
                 ".ssh"
                 ".steam"
                 ".var"
