@@ -70,7 +70,22 @@
               ];
             };
           };
-
+          # --- Systemd Services
+          systemd.services.blocky = {
+          # 1. Keep the DynamicUser fix
+          serviceConfig.DynamicUser = lib.mkForce false;
+          # 2. Wait for the network hardware, but NOT name resolution (breaks the cycle)
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          # 3. Automatic Recovery
+          # If it fails to resolve GitHub on the first try, it will retry every 5 seconds
+          serviceConfig = {
+            Restart = "on-failure";
+            RestartSec = "5s";
+            StartLimitIntervalSec = 300;
+            StartLimitBurst = 10;
+             };
+          };
           # --- Bootloader & Kernel ---
           boot = {
             consoleLogLevel = 0;
@@ -173,6 +188,7 @@
               "/var/lib/sbctl"
               "/var/lib/systemd/coredump"
               "/var/log"
+              "/var/lib/blocky"
             ];
             files = [ "/etc/machine-id" ];
           };
@@ -194,17 +210,7 @@
               enable = true;
               trustedInterfaces = [ "tailscale0" ];
               allowedUDPPorts = [ 41641 ];
-              extraCommands = ''
-                # Allow local lookups to your Blocky instance
-                iptables -A OUTPUT -d 127.0.0.1 -p udp --dport 53 -j ACCEPT
-                iptables -A OUTPUT -d 127.0.0.1 -p tcp --dport 53 -j ACCEPT
-
-                # BLOCK all other outgoing DNS to prevent apps from bypassing Blocky
-                iptables -A OUTPUT -p udp --dport 53 -j REJECT
-                iptables -A OUTPUT -p tcp --dport 53 -j REJECT
-                iptables -A OUTPUT -p tcp --dport 853 -j REJECT
-              '';
-            };
+                          };
           };
 
           security.pam.services = {
@@ -230,7 +236,6 @@
             printing.enable = false;
             geoclue2.enable = lib.mkForce false;
             automatic-timezoned.enable = false;
-
             # Media & Desktop
             pipewire = {
               enable = true;
@@ -247,7 +252,7 @@
               settings = {
                 ports.dns = 53;
                 bootstrapDns = {
-                  upstream = "https://cloudflare-dns.com/dns-query";
+                  upstream = "1.1.1.1";
                   ips = [ "1.1.1.1" ];
                 };
                 upstreams = {
