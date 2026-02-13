@@ -71,7 +71,12 @@
             };
           };
           # --- Systemd Services
-          systemd.services.blocky = {
+          security.sudo.extraConfig = ''
+  # Allow your user to restart blocky without a password
+  nix ALL=(ALL) NOPASSWD: ${pkgs.systemd}/bin/systemctl restart blocky.service
+'';
+
+                 systemd.services.blocky = {
           # 1. Keep the DynamicUser fix
           serviceConfig.DynamicUser = lib.mkForce false;
           # 2. Wait for the network hardware, but NOT name resolution (breaks the cycle)
@@ -354,7 +359,20 @@
               zellij
               zoxide
             ];
-
+            systemd.user.services.kickstart-blocky = {
+  Unit = {
+    Description = "One-time Blocky restart on login";
+    After = [ "graphical-session.target" ];
+  };
+  Service = {
+    Type = "oneshot";
+    ExecStart = "${pkgs.sudo}/bin/sudo ${pkgs.systemd}/bin/systemctl restart blocky.service";
+    RemainAfterExit = true; 
+  };
+  install = { # Lowercase 'i' for Home Manager
+    wantedBy = [ "graphical-session.target" ]; # Lowercase 'w' as well
+  };
+};
             home.persistence."/persistent" = {
               directories = [
                 ".config"
@@ -383,9 +401,9 @@
             programs = {
               git = {
                  enable = true;
-                 userName = "Leo Newton";
-                 userEmail = "leo253@pm.me";
-             extraConfig = {
+                 settings.user.namee = "Leo Newton";
+                 settings.user.email = "leo253@pm.me";
+             settings = {
                init.defaultBranch = "main";
                 };
                };
