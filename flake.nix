@@ -302,14 +302,6 @@
 
           # --- Programs ---
           programs = {
-            git = {
-              enable = true;
-              userName = "Leo Newton";
-              userEmail = "leo253@pm.me";
-              extraConfig = {
-                init.defaultBranch = "main";
-             };
-            };
             mosh.enable = true;
             steam.enable = true;
             gnupg.agent = {
@@ -382,6 +374,14 @@
             };
 
             programs = {
+              git = {
+                 enable = true;
+                 userName = "Leo Newton";
+                 userEmail = "leo253@pm.me";
+             extraConfig = {
+               init.defaultBranch = "main";
+                };
+               };
               starship = { enable = true; enableNushellIntegration = true; };
               zoxide = { enable = true; enableNushellIntegration = true; };
               atuin = { enable = true; enableNushellIntegration = true; };
