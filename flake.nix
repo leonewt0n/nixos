@@ -302,7 +302,7 @@
 
           # --- Programs ---
           programs = {
-            programs.git = {
+            git = {
               enable = true;
               userName = "Leo Newton";
               userEmail = "leo253@pm.me";
