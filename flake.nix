@@ -358,6 +358,7 @@
                 ".local/Steam"
                 ".local/share/Steam"
                 ".local/share/atuin"
+                ".local/share/zoxide"
                 ".ssh"
                 ".steam"
                 ".var"
