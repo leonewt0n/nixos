@@ -1,15 +1,41 @@
 # Personal Config File for Intel 265K System with Intel GPU + Lanzaboote Secureboot w/ TPM LUKS unlock
 
 # Install
-Formatt disk into 2 partitions: /boot and /. Ensure you have the following subvolumes created:
 ```
+# Create a GPT partition table
+parted /dev/nvme0n1 -- mklabel gpt
+
+# Create /boot (Partition 1)
+parted /dev/nvme0n1 -- mkpart ESP fat32 1MB 1500MB
+parted /dev/nvme0n1 -- set 1 esp on
+
+# Create / (Partition 2)
+parted /dev/nvme0n1 -- mkpart primary 1500MB 100%
+# Format the partition with LUKS
+cryptsetup luksFormat /dev/nvme0n1p2
+
+# Open the encrypted partition (mapping it to 'crypted')
+cryptsetup open /dev/nvme0n1p2 enc
+
+# Format Boot (FAT32 for UEFI)
+mkfs.fat -F 32 -n boot /dev/nvme0n1p1
+
+# Format Root (Ext4) inside the encrypted container
+mkfs.btrfs -L root /dev/mapper/enc
+
+# Mount them for the installer
+mount /dev/mapper/root /mnt
+mkdir -p /mnt/boot
+mount /dev/nvme0n1p1 /mnt/boot
+
+cd /mnt
 btrfs subvolume create root
 btrfs subvolume create clean-root
 btrfs subvolume create nix
 btrfs subvolume create persistent
 
 nixos-generate-config --root /etc/nixos/
-cd /etc/nixos/
+cd /mnt/etc/nixos/
 git init
 git add
 nixos-install --flake .#nixos
@@ -36,7 +62,7 @@ sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p1
 sudo systemd-cryptenroll /dev/nvme0n1p1 --tpm2-device=auto --tpm2-pcrs=0+2+7
 ```
 
-# RECOVERY/INSTALL
+# RECOVERY/REINSTALL
 
 ```
 cryptsetup /dev/mapper/enc /mnt
@@ -45,9 +71,6 @@ cd /mnt
 # Delete the old system root (if it exists) to start fresh
 # Create the fresh subvolumes
 btrfs subvolume create root
-btrfs subvolume create clean-root
-btrfs subvolume create nix
-btrfs subvolume create persistent
 umount /mnt
 ```
 Step 2: Mount Targets for Installation
