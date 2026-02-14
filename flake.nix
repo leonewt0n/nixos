@@ -124,7 +124,6 @@
           };
 
           programs = {
-            steam.enable = true;
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
           };
 
