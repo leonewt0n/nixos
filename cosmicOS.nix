@@ -1,5 +1,5 @@
 {
-  description = "Intel 265K System with Intel GPU + Lanzaboote Secureboot w/ TPM LUKS unlock";
+  description = "Base Template for CosmicOS";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
