@@ -85,7 +85,7 @@
 
           environment.persistence."/persistent" = {
             hideMounts = true;
-            directories = [ "/var/lib/nixos" "/var/lib/sbctl" "/var/lib/systemd/coredump" "/var/log" "/var/lib/blocky" ];
+            directories = [ "/var/lib/nixos" "/var/lib/sbctl" "/var/lib/systemd/coredump" "/var/log" "/var/lib/blocky" "/var/lib/tailscale" ];
             files = [ "/etc/machine-id" ];
           };
 
