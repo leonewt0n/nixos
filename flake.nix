@@ -101,7 +101,7 @@
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
 
           services = {
-            tailscale.enable = true; flatpak.enable = true; fwupd.enable = true;
+            tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; geoclue2.enable = true; automatic-timezoned.enable = true;
             resolved.enable = false;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; };
             displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true;
             blocky = {
@@ -127,9 +127,8 @@
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
           };
 
-          time.timeZone = "America/Los_Angeles";
           documentation.nixos.enable = false;
-
+         
           users.mutableUsers = false;
           users.users.root.hashedPassword = "!";
           users.users.nix = {
