@@ -37,16 +37,6 @@
             };
           };
 
-          security.sudo.extraConfig = "nix ALL=(ALL) NOPASSWD: ${pkgs.systemd}/bin/systemctl restart blocky.service";
-          
-          systemd.services.blocky = {
-            after = [ "network-online.target" ]; wants = [ "network-online.target" ];
-            serviceConfig = { 
-              DynamicUser = lib.mkForce false; Restart = "on-failure"; RestartSec = "5s"; 
-              StartLimitIntervalSec = 300; StartLimitBurst = 10;
-            };
-          };
-
           boot = {
             consoleLogLevel = 0; plymouth.enable = true;
             kernelPackages = pkgs.linuxPackages_latest;
@@ -104,15 +94,8 @@
             tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true; system76-scheduler.enable = true;
             resolved.enable = false;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; };
             displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true;
-            blocky = {
-              enable = true;
-              settings = {
-                ports.dns ="127.0.0.1:53"; bootstrapDns = { upstream = "https://cloudflare-dns.com/dns-query"; ips = [ "1.1.1.1" ]; };
-                upstreams = { groups.default = [ "https://cloudflare-dns.com/dns-query" "https://dns.quad9.net/dns-query" ]; strategy = "parallel_best"; };
-                caching = { minTime = "2h"; maxTime = "12h"; prefetching = true; };
-                blocking = { blockType = "zeroIp"; denylists.ads = [ "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ]; clientGroupsBlock.default = [ "ads" ]; };
-              };
-            };
+            unbound = {enable = true;settings = {server = {interface = [ "127.0.0.1" ];access-control = [ "127.0.0.0/8 allow" ];};forward-zone = [{name = ".";forward-tls-upstream = "yes";forward-addr = [
+            "1.1.1.1@853#cloudflare-dns.com" "1.0.0.1@853#cloudflare-dns.com"];}];};};
           };
 
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
@@ -147,7 +130,7 @@
             };
             home.persistence."/persistent" = {
               directories = [ 
-                ".config" ".gnupg" ".local/share"  ".ssh"  ".var"  "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
+                ".config" ".gnupg" ".local/share"  ".ssh"  ".var" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
               ];
               files = [ ".bashrc" ];
             };
