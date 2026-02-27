@@ -32,6 +32,9 @@
           nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
 
           hardware = {
+            nvidia.open = true;
+            nvidia.package = "config.boot.kernelPackages.nvidiaPackages.vulkan_beta";
+            #nvidia-container-toolkit.enable = true; 
             enableAllFirmware = true;
             cpu.intel.updateMicrocode = true;
             graphics = {
@@ -46,9 +49,9 @@
             lanzaboote = { enable = true; autoEnrollKeys.enable = true;autoGenerateKeys.enable = true; pkiBundle = "/var/lib/sbctl"; };
             loader = { systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelParams = [ 
-              "8250.nr_uarts=0" "i915.force_probe=!7d67" "quiet" "rd.systemd.show_status=false" 
+              "quiet" "rd.systemd.show_status=false" 
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" 
-              "xe.force_probe=7d67" "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" 
+              "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" 
             ];
             kernel.sysctl = { "kernel.split_lock_mitigate" = 0; "vm.max_map_count" = 2147483642; "vm.swappiness" = 100; };
             initrd = {
