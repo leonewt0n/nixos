@@ -32,14 +32,15 @@
           nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
 
           hardware = {
-            nvidia = {open = false; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.latest;};
-            #nvidia-container-toolkit.enable = true; 
+            nvidia = {open = true; gsp.enable = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.beta;};
+            #nvidia-container-toolkit.enable = true;
+            graphics = {enable = true; enable32Bit= true;};
             enableAllFirmware = true;
             cpu.intel.updateMicrocode = true;};
 
           boot = {
             consoleLogLevel = 0; plymouth.enable = true;
-            kernelPackages = pkgs.linuxPackages_latest;
+           # kernelPackages = pkgs.linuxPackages_latest;
             lanzaboote = { enable = true; autoEnrollKeys.enable = true;autoGenerateKeys.enable = true; pkiBundle = "/var/lib/sbctl"; };
             loader = { systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelParams = [ 
@@ -99,8 +100,8 @@
 
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
-          environment.systemPackages = with pkgs; [busybox git-remote-gcrypt gnupg pinentry-curses sbctl nvidia_oc];
-          
+          environment.systemPackages = with pkgs; [busybox git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
+          #environment.variables = {GBM_BACKEND = "nvidia-drm";LIBVA_DRIVER_NAME = "nvidia";__GLX_VENDOR_LIBRARY_NAME = "nvidia";};
           programs = {
             appimage = {enable = true; binfmt = true;};
             nix-ld.enable = true;
