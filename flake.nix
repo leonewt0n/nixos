@@ -67,6 +67,7 @@
               };
             };
           };
+          systemd.settings.Manager ={DefaultTimeoutStopSec="2s";DefaultTimeoutStartSec="2s";};
           fileSystems = {
             "/" = { fsType = "btrfs"; options = [ "subvol=root" "compress=zstd" ]; };
             "/nix" = { fsType = "btrfs"; options = [ "subvol=nix" "compress=zstd" ]; };
@@ -91,13 +92,13 @@
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
 
           services = {
-            xserver.videoDrivers = ["nvidia"]; tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true; system76-scheduler.enable = true;
+            xserver.videoDrivers = ["nvidia"];tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true; system76-scheduler.enable = true;
             resolved.enable = false;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; };
            displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true; /* xserver = { enable=true; libinput.enable=true; desktopManager.xfce.enable = true; displayManager.lightdm.enable = true;};*/
             unbound = {enable = true;settings = {server = {interface = [ "127.0.0.1" ];prefetch = "yes";access-control = [ "127.0.0.0/8 allow" ];};forward-zone = [{name = ".";forward-tls-upstream = "yes";forward-addr = [
             "1.1.1.1@853#cloudflare-dns.com" "1.0.0.1@853#cloudflare-dns.com"];}];};};
           };
-
+          
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
           environment.systemPackages = with pkgs; [busybox git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
