@@ -85,7 +85,9 @@
 
           networking = {
             hostName = "nixos"; 
-            nameservers = [ "127.0.0.1" ];
+            nameservers = [ "1.1.1.1" ];
+            useNetworkd = true;
+            networkmanager.enable = false;
             firewall = { enable = true; trustedInterfaces = [ "tailscale0" ]; allowedUDPPorts = [ 41641 ]; };
           };
 
@@ -93,12 +95,10 @@
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
 
           services = {
-            xserver.videoDrivers =["nvidia"];tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true; system76-scheduler.enable = true;
-            resolved.enable = false;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; };
-           displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true; /* xserver = { enable=true; libinput.enable=true; desktopManager.xfce.enable = true; displayManager.lightdm.enable = true;};*/
-            unbound = {enable = true;settings = {server = {interface = [ "127.0.0.1" ];prefetch = "yes";access-control = [ "127.0.0.0/8 allow" ];};forward-zone = [{name = ".";forward-tls-upstream = "yes";forward-addr = [
-            "1.1.1.1@853#cloudflare-dns.com" "1.0.0.1@853#cloudflare-dns.com"];}];};};
-          };
+            xserver.videoDrivers =["nvidia"];tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true;
+           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;
+           /*displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true;*/ system76-scheduler.enable = true; /* xserver = { enable=true; libinput.enable=true; desktopManager.xfce.enable = true; displayManager.lightdm.enable = true;};*/
+                      };
           
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
@@ -107,10 +107,11 @@
           programs = {
             appimage = {enable = true; binfmt = true;};
             nix-ld.enable = true;
-            nix-ld.libraries = with pkgs; [icu libxcb libx11];
+            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi];
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
+            sway = {enable = true;wrapperFeatures.gtk = true; extraPackages = with pkgs; [foot wofi ];};
           };
-
+         
           documentation.nixos.enable = false;
          
           users.mutableUsers = false;
@@ -124,11 +125,6 @@
             home.stateVersion = "26.05";
             manual = { manpages.enable = false; html.enable = false; json.enable = false; };
             home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
-            systemd.user.services.kickstart-blocky = {
-              Unit = { Description = "One-time Blocky restart on login"; After = [ "graphical-session.target" ]; };
-              Service = { Type = "oneshot"; ExecStart = "${pkgs.sudo}/bin/sudo ${pkgs.systemd}/bin/systemctl restart blocky.service"; RemainAfterExit = true; };
-              install.wantedBy = [ "graphical-session.target" ];
-            };
             home.persistence."/persistent" = {
               directories = [ 
                 ".config" ".gnupg" ".local/share"  ".ssh"  ".var" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
@@ -136,6 +132,9 @@
               files = [ ".bashrc" ];
             };
             fonts.fontconfig.enable = true;
+            
+            
+                        
             programs = {
               git = { enable = true; settings.user = { name = "Leo Newton"; email = "leo253@pm.me"; }; settings.init.defaultBranch = "main"; };
               starship = { enable = true; enableNushellIntegration = true; };
