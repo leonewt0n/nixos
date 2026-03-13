@@ -32,7 +32,7 @@
           nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
 
           hardware = {
-            nvidia = {open = true; gsp.enable = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.stable;};
+            nvidia = {open = true; gsp.enable = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.stable;powerManagement.enable = true; dynamicBoost.enable = true; };
             nvidia-container-toolkit.enable = true;
             graphics = {enable = true; enable32Bit= true;};
             enableAllFirmware = true;
@@ -95,14 +95,18 @@
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
 
           services = {
-            xserver.videoDrivers =["nvidia"];tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true;
+            xserver.videoDrivers =["nvidia"]; tailscale.enable = true; flatpak.enable = true; fwupd.enable = true; tzupdate.enable = true;
            pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;
            /*displayManager.cosmic-greeter.enable = true; desktopManager.cosmic.enable = true;*/ system76-scheduler.enable = true; /* xserver = { enable=true; libinput.enable=true; desktopManager.xfce.enable = true; displayManager.lightdm.enable = true;};*/
                       };
-          
+          xdg.portal = {
+            enable = true;
+            wlr.enable = true; # Specific for Sway/wlroots
+            extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+          };
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
-          environment.systemPackages = with pkgs; [busybox  mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
+          environment.systemPackages = with pkgs; [busybox toybox mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
           #environment.variables = {GBM_BACKEND = "nvidia-drm";LIBVA_DRIVER_NAME = "nvidia";__GLX_VENDOR_LIBRARY_NAME = "nvidia";};
           programs = {
             appimage = {enable = true; binfmt = true;};
@@ -132,9 +136,7 @@
               files = [ ".bashrc" ];
             };
             fonts.fontconfig.enable = true;
-            
-            
-                        
+                     
             programs = {
               git = { enable = true; settings.user = { name = "Leo Newton"; email = "leo253@pm.me"; }; settings.init.defaultBranch = "main"; };
               starship = { enable = true; enableNushellIntegration = true; };
