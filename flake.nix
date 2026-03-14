@@ -98,7 +98,7 @@
 
           services = {
             xserver.videoDrivers =["nvidia"]; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;  fwupd.enable = true; tzupdate.enable = true;
-           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;system76-scheduler.enable = true; 
+           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;
                       };
           xdg.portal = {
             enable = true;
