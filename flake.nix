@@ -41,13 +41,12 @@
             cpu.intel.updateMicrocode = true;};
 
           boot = {
-            consoleLogLevel = 0; plymouth.enable = true;
            # kernelPackages = pkgs.linuxPackages_latest;
             lanzaboote = { enable = true; autoEnrollKeys.enable = true;autoGenerateKeys.enable = true; pkiBundle = "/var/lib/sbctl"; };
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "quiet" "rd.systemd.show_status=false" "preempt=full" 
+              "preempt=full" "8250.nr_uarts=0"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" 
               "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt"
             ];
@@ -71,6 +70,7 @@
             };
           };
           systemd.settings.Manager ={DefaultTimeoutStopSec="2s";DefaultTimeoutStartSec="2s";};
+          systemd.oomd.enable = false;
           fileSystems = {
             "/" = { fsType = "btrfs"; options = [ "subvol=root" "compress=zstd" ]; };
             "/nix" = { fsType = "btrfs"; options = [ "subvol=nix" "compress=zstd" ]; };
