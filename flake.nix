@@ -98,13 +98,13 @@
 
           services = {
             xserver.videoDrivers =["nvidia"]; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;  fwupd.enable = true; tzupdate.enable = true;
-           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;
-                      };
+           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;};
+
           xdg.portal = {
             enable = true;
             wlr.enable = true; # Specific for Sway/wlroots
-            extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-          };
+            };
+                      
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
           environment.systemPackages = with pkgs; [busybox toybox jq mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
@@ -113,9 +113,9 @@
             nix-ld.enable = true;
             nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
-            sway = {enable = true;wrapperFeatures.gtk = true; extraPackages = with pkgs; [foot wofi rofi ];};
+            sway = {enable = true;wrapperFeatures.gtk = true;  extraPackages = with pkgs; [foot rofi grim slurp ];};
           };
-         
+
           documentation.nixos.enable = false;
           systemd.services.nvidia-overclock = {
           description = "NVIDIA Overclocking Service";
