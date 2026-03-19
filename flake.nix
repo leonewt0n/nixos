@@ -111,9 +111,9 @@
           programs = {
             appimage = {enable = true; binfmt = true;};
             nix-ld.enable = true;
-            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi zlib stdenv.cc.cc.lib];
+            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
-            sway = {enable = true;wrapperFeatures.gtk = true; extraPackages = with pkgs; [foot wofi ];};
+            sway = {enable = true;wrapperFeatures.gtk = true; extraPackages = with pkgs; [foot wofi rofi ];};
           };
          
           documentation.nixos.enable = false;
