@@ -10,9 +10,11 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
+    nixpkgs-wayland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, lanzaboote, determinate, disko, impermanence,nix-flatpak, ... } @ inputs: {
+  outputs = { self, nixpkgs, home-manager, lanzaboote, determinate, disko, impermanence,nix-flatpak,nixpkgs-wayland,  ... } @ inputs: {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
@@ -23,6 +25,9 @@
         home-manager.nixosModules.home-manager
         impermanence.nixosModules.impermanence
         nix-flatpak.nixosModules.nix-flatpak
+        {
+          nixpkgs.overlays = [ inputs.nixpkgs-wayland.overlays.default ];
+        }
         {
           home-manager = { useGlobalPkgs = true; useUserPackages = true; extraSpecialArgs = { inherit inputs; }; };
         }
@@ -46,7 +51,7 @@
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" 
               "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt"
             ];
@@ -97,7 +102,7 @@
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
 
           services = {
-            xserver.videoDrivers =["nvidia"]; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;  fwupd.enable = true; tzupdate.enable = true;
+            xserver.videoDrivers =["nvidia"];seatd.enable = true; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;  fwupd.enable = true; tzupdate.enable = true;
            pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;};
 
           xdg.portal = {
@@ -107,15 +112,18 @@
                       
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
-          environment.systemPackages = with pkgs; [busybox toybox jq mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
+          environment.systemPackages = with pkgs; [busybox toybox libcap jq mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
           programs = {
             appimage = {enable = true; binfmt = true;};
             nix-ld.enable = true;
             nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
-            sway = {enable = true;wrapperFeatures.gtk = true;  extraPackages = with pkgs; [foot rofi grim slurp ];};
+            sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp ];};
+            gamescope = {enable = true;capSysNice = true;};
+            steam = {enable = true; package =pkgs.steam.override {extraEnv = {PROTON_ENABLE_WAYLAND="1";};};};
           };
 
+  
           documentation.nixos.enable = false;
           systemd.services.nvidia-overclock = {
           description = "NVIDIA Overclocking Service";
@@ -132,7 +140,7 @@
           users.mutableUsers = false;
           users.users.root.hashedPassword = "!";
           users.users.nix = {
-            isNormalUser = true; shell = pkgs.nushell; description = "nix user"; extraGroups = [ "wheel" "tape" "video" "render" "seat" "audio" ];
+            isNormalUser = true; shell = pkgs.nushell; description = "nix user"; extraGroups = [ "wheel" "tape" "video" "render" "seat" "audio" "input" ];
             hashedPassword = "$6$FA0MUKHblWK2Ym8O$aQx3otoJ2hYTDA2kyfhEdPFm5gJQgg/LUJ3GBOmr4/A2MtTwPUWd/ZlFlutCInhN7s7T/51fwWRGiJiM07R2r1";
           };
 
@@ -142,7 +150,7 @@
             home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono sov ];
             home.persistence."/persistent" = {
               directories = [ 
-                ".config" ".gnupg" ".local/share"  ".ssh"  ".var" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
+                ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
               ];
               files = [ ".bashrc" ];
             };
