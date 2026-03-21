@@ -1,5 +1,5 @@
 {
-  description = "Intel 265K System with Intel GPU + Lanzaboote Secureboot w/ TPM LUKS unlock";
+  description = "Intel 265K System with Nvidia GPU + Lanzaboote Secureboot w/ TPM LUKS unlock";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -39,19 +39,19 @@
           nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
 
           hardware = {
-            nvidia = {open = true; gsp.enable = true; nvidiaPersistenced = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.stable; };
+            nvidia = {open = true; gsp.enable = true; nvidiaPersistenced = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.beta; };
             nvidia-container-toolkit.enable = true;
             graphics = {enable = true; enable32Bit= true;};
             enableAllFirmware = true;
             cpu.intel.updateMicrocode = true;};
 
           boot = {
-           # kernelPackages = pkgs.linuxPackages_latest;
+            kernelPackages = pkgs.linuxPackages_latest;
             lanzaboote = { enable = true; autoEnrollKeys.enable = true;autoGenerateKeys.enable = true; pkiBundle = "/var/lib/sbctl"; };
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "split_lock_detect=off"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" 
               "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt"
             ];
@@ -100,10 +100,14 @@
 
           security.pam.services = { login.u2fAuth = true; sudo.u2fAuth = true; };
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
+          security.rtkit.enable = true;
 
           services = {
-            xserver.videoDrivers =["nvidia"];seatd.enable = true; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;  fwupd.enable = true; tzupdate.enable = true;
-           pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true; pulse.enable = true; }; resolved.enable =true;};
+            xserver.videoDrivers =["nvidia"];seatd.enable = true; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;
+            fwupd.enable = true; tzupdate.enable = true;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true;
+            pulse.enable = true; jack.enable = true; extraConfig.pipewire."92-low-latency" =
+           {"context.properties" = {"default.clock.rate" = 48000;"default.clock.quantum" = 1024;"default.clock.min-quantum" = 32;
+           "default.clock.max-quantum" = 2048;};resolved.enable = true;};};};
 
           xdg.portal = {
             enable = true;
@@ -120,7 +124,7 @@
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
             sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp ];};
             gamescope = {enable = true;capSysNice = true;};
-            steam = {enable = true; package =pkgs.steam.override {extraEnv = {PROTON_ENABLE_WAYLAND="1";};};};
+            steam = {enable = true; package =pkgs.steam.override {extraEnv = {PROTON_ENABLE_WAYLAND="1";PULSE_LATENCY_MSEC = "60";};};};
           };
 
   
