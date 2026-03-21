@@ -51,9 +51,9 @@
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "split_lock_detect=off"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "clearcpuid=split_lock_detect"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" 
-              "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt"
+              "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
             ];
             kernel.sysctl = { "kernel.split_lock_mitigate" = 0; "vm.max_map_count" = 2147483642; "vm.swappiness" = 100; };
             initrd = {
@@ -101,13 +101,42 @@
           security.pam.services = { login.u2fAuth = true; sudo.u2fAuth = true; };
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
           security.rtkit.enable = true;
+          services.udev.extraRules = ''ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]*", ATTR{queue/scheduler}="mq-deadline"'';
 
           services = {
-            xserver.videoDrivers =["nvidia"];seatd.enable = true; tailscale.enable = true; flatpak.enable = true;flatpak.update.onActivation = true;
-            fwupd.enable = true; tzupdate.enable = true;pipewire = { enable = true; alsa.enable = true; alsa.support32Bit = true;
-            pulse.enable = true; jack.enable = true; extraConfig.pipewire."92-low-latency" =
-           {"context.properties" = {"default.clock.rate" = 48000;"default.clock.quantum" = 1024;"default.clock.min-quantum" = 32;
-           "default.clock.max-quantum" = 2048;};resolved.enable = true;};};};
+  xserver.videoDrivers = [ "nvidia" ];
+  seatd.enable = true;
+  tailscale.enable = true;
+  flatpak.enable = true;
+  flatpak.update.onActivation = true;
+  fwupd.enable = true;
+  tzupdate.enable = true;
+  resolved.enable = true; # Moved out of Pipewire
+
+  # The actual SCX scheduler service
+  scx = {
+    enable = true;
+    scheduler = "scx_lavd";
+    extraArgs = [ "--performance" ];
+  };
+
+  pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    jack.enable = true;
+    extraConfig.pipewire."92-low-latency" = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 1024;
+        "default.clock.min-quantum" = 32;
+        "default.clock.max-quantum" = 2048;
+      };
+    };
+  };
+};
+              
 
           xdg.portal = {
             enable = true;
