@@ -104,39 +104,35 @@
           services.udev.extraRules = ''ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]*", ATTR{queue/scheduler}="mq-deadline"'';
 
           services = {
-  xserver.videoDrivers = [ "nvidia" ];
-  seatd.enable = true;
-  tailscale.enable = true;
-  flatpak.enable = true;
-  flatpak.update.onActivation = true;
-  fwupd.enable = true;
-  tzupdate.enable = true;
-  resolved.enable = true; # Moved out of Pipewire
-
-  # The actual SCX scheduler service
-  scx = {
-    enable = true;
-    scheduler = "scx_lavd";
-    extraArgs = [ "--performance" ];
-  };
-
-  pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true;
-    extraConfig.pipewire."92-low-latency" = {
-      "context.properties" = {
-        "default.clock.rate" = 48000;
-        "default.clock.quantum" = 1024;
-        "default.clock.min-quantum" = 32;
-        "default.clock.max-quantum" = 2048;
-      };
-    };
-  };
-};
-              
+          xserver.videoDrivers = [ "nvidia" ];
+          seatd.enable = true;
+          tailscale.enable = true;
+          flatpak.enable = true;
+          flatpak.update.onActivation = true;
+          fwupd.enable = true;
+          tzupdate.enable = true;
+          resolved.enable = true;
+          scx = {
+            enable = true;
+            scheduler = "scx_lavd";
+            extraArgs = [ "--performance" ];
+          };
+          pipewire = {
+            enable = true;
+            alsa.enable = true;
+            alsa.support32Bit = true;
+            pulse.enable = true;
+            jack.enable = true;
+            extraConfig.pipewire."92-low-latency" = {
+              "context.properties" = {
+                "default.clock.rate" = 48000;
+                "default.clock.quantum" = 1024;
+                "default.clock.min-quantum" = 32;
+                "default.clock.max-quantum" = 2048;
+              };
+            };
+          };
+        };
 
           xdg.portal = {
             enable = true;
