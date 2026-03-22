@@ -51,8 +51,8 @@
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "clearcpuid=split_lock_detect" "mitigations=off"
-              "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "mitigations=off"
+              "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off" "intel_pstate=disable"
               "zswap.compressor=zstd" "zswap.max_pool_percent=20" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
             ];
             kernel.sysctl = { "kernel.split_lock_mitigate" = 0; "vm.max_map_count" = 2147483642; "vm.swappiness" = 100; };
@@ -101,7 +101,6 @@
           security.pam.services = { login.u2fAuth = true; sudo.u2fAuth = true; };
           security.pam.u2f = { enable = true; control = "sufficient"; settings.cue = true; };
           security.rtkit.enable = true;
-          services.udev.extraRules = ''ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]*", ATTR{queue/scheduler}="mq-deadline"'';
 
           services = {
           xserver.videoDrivers = [ "nvidia" ];
@@ -112,6 +111,7 @@
           fwupd.enable = true;
           tzupdate.enable = true;
           resolved.enable = true;
+          udev.extraRules = ''ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]*", ATTR{queue/scheduler}="mq-deadline"'';
           scx = {
             enable = true;
             scheduler = "scx_bpfland";
@@ -148,7 +148,12 @@
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
             sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp ];};
             gamescope = {enable = true;capSysNice = true;};
-            steam = {enable = true; package =pkgs.steam.override {extraEnv = {PROTON_ENABLE_WAYLAND="1";PULSE_LATENCY_MSEC = "60";};};};
+            steam = {enable = true; package =pkgs.steam.override
+               {extraEnv = {
+                 PROTON_ENABLE_WAYLAND="1";
+                 PROTON_ENABLE_NGX_UPDATER="1";
+                 DXVK_NVAPI_DRS_SETTINGS="NGX_DLSS_RR_OVERRIDE=on,NGX_DLSS_SR_OVERRIDE=on,NGX_DLSS_FG_OVERRIDE=on,NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest,NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest";
+                 PULSE_LATENCY_MSEC = "60";};};};
           };
 
   
