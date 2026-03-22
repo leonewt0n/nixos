@@ -53,7 +53,7 @@
             kernelParams = [ 
               "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "clearcpuid=split_lock_detect" "mitigations=off"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off"
-              "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
+              "zswap.compressor=zstd" "zswap.max_pool_percent=20" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
             ];
             kernel.sysctl = { "kernel.split_lock_mitigate" = 0; "vm.max_map_count" = 2147483642; "vm.swappiness" = 100; };
             initrd = {
@@ -114,8 +114,7 @@
           resolved.enable = true;
           scx = {
             enable = true;
-            scheduler = "scx_lavd";
-            extraArgs = [ "--performance" ];
+            scheduler = "scx_bpfland";
           };
           pipewire = {
             enable = true;
