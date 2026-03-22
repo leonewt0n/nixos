@@ -51,7 +51,7 @@
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "clearcpuid=split_lock_detect"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "clearcpuid=split_lock_detect" "mitigations=off"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off"
               "zswap.compressor=zstd" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
             ];
