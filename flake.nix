@@ -95,7 +95,7 @@
             nameservers = [ "1.1.1.1" ];
             useNetworkd = true;
             networkmanager.enable = false;
-            firewall = { enable = true; trustedInterfaces = [ "tailscale0" ]; allowedUDPPorts = [ 41641 ]; };
+            firewall = { enable = true; trustedInterfaces = [ "tailscale0" ]; allowedUDPPorts = [ 41641 ]; logRefusedConnections = false;rejectPackets = false; };
           };
 
           security.pam.services = { login.u2fAuth = true; sudo.u2fAuth = true; };
@@ -140,13 +140,9 @@
                       
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
-          environment.systemPackages = with pkgs; [busybox toybox libcap jq mt-st hpe-ltfs lsscsi sg3_utils git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
+          environment.systemPackages = with pkgs; [busybox toybox libcap jq  git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
           programs = {
-            appimage = {enable = true; binfmt = true;};
-            nix-ld.enable = true;
-            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext libsm libice libxrandr libxxf86vm libxinerama libxrender libxfixes libxkbcommon xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
-            gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
-            sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp ];};
+            sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp mako ];};
             gamescope = {enable = true;capSysNice = true;};
             steam = {enable = true; package =pkgs.steam.override
                {extraEnv = {
@@ -180,10 +176,10 @@
           home-manager.users.nix = { pkgs, ... }: {
             home.stateVersion = "26.05";
             manual = { manpages.enable = false; html.enable = false; json.enable = false; };
-            home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono sov ];
+            home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
             home.persistence."/persistent" = {
               directories = [ 
-                ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
+                ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var/app" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
               ];
               files = [ ".bashrc" ];
             };
@@ -207,7 +203,7 @@
                     let m = if ($msg | is-empty) { (date now | format date '%Y-%m-%d %H:%M:%S') } else { $msg }; git commit -m $m; git push
                   }
                   $env.SSH_AUTH_SOCK = $"/run/user/(id -u)/gcr/ssh"; $env.GPG_TTY = (tty); gpg-connect-agent updatestartuptty /bye | ignore
-                  def ubuntu [] { podman run --rm -it -v $"($env.PWD):/data" -w /data ubuntu:latest bash }
+                  def ubuntu [] { podman run --rm --gpus all -it -v $"($env.PWD):/data" -w /data ubuntu:latest bash }
                 '';
                 shellAliases = {};
               };
