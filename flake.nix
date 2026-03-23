@@ -144,7 +144,7 @@
           programs = {
             appimage = {enable = true; binfmt = true;};
             nix-ld.enable = true;
-            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
+            nix-ld.libraries = with pkgs; [icu libxcb libx11 libGL libXcursor libXext libsm libice libxrandr libxxf86vm libxinerama libxrender libxfixes libxkbcommon xinput libXi libz zlib stdenv.cc.cc.lib stdenv.cc.cc];
             gnupg.agent = { enable = true; enableSSHSupport = false; pinentryPackage = pkgs.pinentry-curses; settings.pinentry-program = lib.mkForce "${pkgs.pinentry-curses}/bin/pinentry-curses"; };
             sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp ];};
             gamescope = {enable = true;capSysNice = true;};
