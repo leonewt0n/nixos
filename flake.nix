@@ -39,7 +39,7 @@
           nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
 
           hardware = {
-            nvidia = {open = true; gsp.enable = true; nvidiaPersistenced = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.beta; };
+            nvidia = {open = true; gsp.enable = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.beta; };
             nvidia-container-toolkit.enable = true;
             graphics = {enable = true; enable32Bit= true;};
             enableAllFirmware = true;
@@ -51,7 +51,7 @@
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
             kernelParams = [ 
-              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "mitigations=off"
+              "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "mitigations=off" "clearcpuid=514" "clearcpuid=split_lock_detect"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off" "intel_pstate=disable"
               "zswap.compressor=zstd" "zswap.max_pool_percent=20" "zswap.enabled=1" "zswap.zpool=zsmalloc" "intel_iommu=on" "iommu=pt" "transparent_hugepage=madvise"
             ];
@@ -131,6 +131,16 @@
               };
             };
           };
+          snapper.configs = {
+          persistent = {
+            SUBVOLUME = "/persistent";
+            TIMELINE_CREATE = true;
+            TIMELINE_CLEANUP = true;
+            INTERVAL = "hourly";
+            ALLOW_USERS = [ "nix" ];
+            TIMELINE_LIMIT_WEEKLY = "1";
+          };
+        };
         };
 
           xdg.portal = {
