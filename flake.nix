@@ -138,7 +138,11 @@
             TIMELINE_CLEANUP = true;
             INTERVAL = "hourly";
             ALLOW_USERS = [ "nix" ];
-            TIMELINE_LIMIT_WEEKLY = "1";
+            TIMELINE_LIMIT_HOURLY = "24";
+            TIMELINE_LIMIT_DAILY = "7";
+            TIMELINE_LIMIT_WEEKLY = "0";
+            TIMELINE_LIMIT_MONTHLY = "0";
+            TIMELINE_LIMIT_YEARLY = "0";
           };
         };
         };
@@ -189,8 +193,7 @@
             home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
             home.persistence."/persistent" = {
               directories = [ 
-                ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var/app" "ROMs" "Archive" "Documents" "Downloads" "DOS" "git" "obsidianVault" "Pictures" "Videos" 
-              ];
+                ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var/app" "Documents" "Downloads" ];
               files = [ ".bashrc" ];
             };
             fonts.fontconfig.enable = true;
@@ -207,7 +210,7 @@
                 enable = true;
                 configFile.text = ''
                   $env.config = { show_banner: false, edit_mode: vi }
-                  def update [] { sudo nix flake update --flake ~/git/nixos/; sudo nixos-rebuild switch --flake ~/git/nixos/ }
+                  def update [] { sudo nix flake update --flake ~/Documents/git/nixos/; sudo nixos-rebuild switch --flake ~/Documents/git/nixos/ }
                   def push [msg?: string] {
                     $env.GPG_TTY = (tty); gpg-connect-agent updatestartuptty /bye | ignore; git add -A
                     let m = if ($msg | is-empty) { (date now | format date '%Y-%m-%d %H:%M:%S') } else { $msg }; git commit -m $m; git push
