@@ -45,6 +45,7 @@ btrfs subvolume create /mnt/root
 btrfs subvolume create /mnt/clean-root
 btrfs subvolume create /mnt/nix
 btrfs subvolume create /mnt/persistent
+btrfs subvolume create /mnt/persistent/.snapshots
 umount /mnt
 ```
 
