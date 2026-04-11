@@ -23,7 +23,7 @@ set $right l
 set $term foot
 # Your preferred application launcher
 set $menu rofi -show drun -show-icons
-bindsym $mod+b exec flatpak run app.zen_browser.zen
+bindsym $mod+b exec chromium
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /run/current-system/sw/share/backgrounds/sway/)
