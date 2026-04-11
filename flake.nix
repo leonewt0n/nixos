@@ -36,7 +36,7 @@
           system.stateVersion = "26.05";
           nixpkgs.config.allowUnfree = true;
 
-          nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; };
+          nix.settings = { auto-optimise-store = true; eval-cores = 0; http-connections = 50; max-jobs = "auto"; extra-platforms = [ "aarch64-linux" ]; };
 
           hardware = {
             nvidia = {open = true; gsp.enable = true; modesetting.enable = true;package = config.boot.kernelPackages.nvidiaPackages.beta; };
@@ -50,6 +50,7 @@
             lanzaboote = { enable = true; autoEnrollKeys.enable = true;autoGenerateKeys.enable = true; pkiBundle = "/var/lib/sbctl"; };
             loader = { systemd-boot.configurationLimit = 5;systemd-boot.enable = lib.mkForce false; timeout = 0; };
             kernelModules = ["st" "sg" "vfio_pci" "vfio" "vfio_iommu_type1"] ;
+            binfmt.emulatedSystems = [ "aarch64-linux" ];
             kernelParams = [ 
               "preempt=full" "8250.nr_uarts=0" "nvidia-drm.modeset=1" "mitigations=off" "clearcpuid=514" "clearcpuid=split_lock_detect"
               "rd.tpm2.wait-for-device=1" "tpm_tis.interrupts=0" "usbcore.autosuspend=-1" "split_lock_detect=off" "intel_pstate=disable"
@@ -76,7 +77,11 @@
           };
           systemd.settings.Manager ={DefaultTimeoutStopSec="2s";DefaultTimeoutStartSec="2s";};
           systemd.oomd.enable = false;
-          fileSystems = {
+          systemd.tmpfiles.rules = [
+          "d  /tmp/ch-conf   0700 nix users -"
+          "L+ /home/nix/.config/chromium - nix users - /tmp/ch-conf"
+        ];                
+            fileSystems = {
             "/" = { fsType = "btrfs"; options = [ "subvol=root" "compress=zstd" ]; };
             "/nix" = { fsType = "btrfs"; options = [ "subvol=nix" "compress=zstd" ]; };
             "/persistent" = { fsType = "btrfs"; neededForBoot = true; options = [ "subvol=persistent" "compress=zstd" ]; };
@@ -88,7 +93,7 @@
             files = [ "/etc/machine-id" ];
           };
 
-          swapDevices = [{ device = "/swapfile"; size = 16384; priority = 10; }];
+          swapDevices = [{ device = "/swapfile"; size = 50000; priority = 10; }];
 
           networking = {
             hostName = "nixos"; 
@@ -107,6 +112,7 @@
           seatd.enable = true;
           tailscale.enable = true;
           flatpak.enable = true;
+          pcscd.enable = true;
           flatpak.update.onActivation = true;
           fwupd.enable = true;
           tzupdate.enable = true;
@@ -139,7 +145,7 @@
             INTERVAL = "hourly";
             ALLOW_USERS = [ "nix" ];
             TIMELINE_LIMIT_HOURLY = "24";
-            TIMELINE_LIMIT_DAILY = "7";
+            TIMELINE_LIMIT_DAILY = "0";
             TIMELINE_LIMIT_WEEKLY = "0";
             TIMELINE_LIMIT_MONTHLY = "0";
             TIMELINE_LIMIT_YEARLY = "0";
@@ -156,8 +162,10 @@
 
           environment.systemPackages = with pkgs; [busybox toybox libcap jq  git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
           programs = {
+            chromium = {enable = true;extraOpts = {"IncognitoModeAvailability" = 2;};};
             sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp mako ];};
             gamescope = {enable = true;capSysNice = true;};
+            gnupg.agent = { enable = true;enableSSHSupport = true; pinentryPackage = pkgs.pinentry-curses;};
             steam = {enable = true; package =pkgs.steam.override
                {extraEnv = {
                  PROTON_ENABLE_WAYLAND="1";
@@ -190,14 +198,13 @@
           home-manager.users.nix = { pkgs, ... }: {
             home.stateVersion = "26.05";
             manual = { manpages.enable = false; html.enable = false; json.enable = false; };
-            home.packages = with pkgs; [ atuin btop carapace fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
+            home.packages = with pkgs; [ atuin btop carapace chromium fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
             home.persistence."/persistent" = {
               directories = [ 
                 ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var/app" "Documents" "Downloads" ];
-              files = [ ".bashrc" ];
+              files = [  ];
             };
-            fonts.fontconfig.enable = true;
-                     
+            fonts.fontconfig.enable = true;       
             programs = {
               git = { enable = true; settings.user = { name = "Leo Newton"; email = "leo253@pm.me"; }; settings.init.defaultBranch = "main"; };
               starship = { enable = true; enableNushellIntegration = true; };
