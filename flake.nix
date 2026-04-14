@@ -2,24 +2,22 @@
   description = "Intel 265K System with Nvidia GPU + Lanzaboote Secureboot w/ TPM LUKS unlock";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/master";
     lanzaboote = { url = "github:nix-community/lanzaboote/v1.0.0"; inputs.nixpkgs.follows = "nixpkgs"; };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
     home-manager = { url = "github:nix-community/home-manager"; inputs.nixpkgs.follows = "nixpkgs"; };
     impermanence.url = "github:nix-community/impermanence";
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
     disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
     nixpkgs-wayland.url = "github:nix-community/nixpkgs-wayland";
     nixpkgs-wayland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, home-manager, lanzaboote, determinate, disko, impermanence,nix-flatpak,nixpkgs-wayland,  ... } @ inputs: {
+  outputs = { self, nixpkgs, home-manager, lanzaboote, determinate,impermanence,nix-flatpak,nixpkgs-wayland,  ... } @ inputs: {
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; };
       modules = [
-        disko.nixosModules.disko
         lanzaboote.nixosModules.lanzaboote
         determinate.nixosModules.default
         home-manager.nixosModules.home-manager
@@ -98,8 +96,8 @@
           networking = {
             hostName = "nixos"; 
             nameservers = [ "1.1.1.1" ];
-            useNetworkd = true;
-            networkmanager.enable = false;
+            #useNetworkd = true;
+            networkmanager.enable = true;
             firewall = { enable = true; trustedInterfaces = [ "tailscale0" ]; allowedUDPPorts = [ 41641 ]; logRefusedConnections = false;rejectPackets = false; };
           };
 
@@ -108,6 +106,9 @@
           security.rtkit.enable = true;
 
           services = {
+          displayManager.cosmic-greeter.enable = true;
+          desktopManager.cosmic.enable = true;
+          sysprof.enable = true;
           xserver.videoDrivers = [ "nvidia" ];
           seatd.enable = true;
           tailscale.enable = true;
@@ -153,28 +154,16 @@
         };
         };
 
-          xdg.portal = {
-            enable = true;
-            wlr.enable = true; # Specific for Sway/wlroots
-            };
+          xdg.portal = {enable = true;};
                       
           virtualisation = { containers.enable = true; podman = { enable = true; dockerCompat = true; defaultNetwork.settings.dns_enabled = true; }; };
 
-          environment.systemPackages = with pkgs; [busybox toybox libcap jq  git-remote-gcrypt gnupg pinentry-curses vulkan-loader vulkan-tools vulkan-validation-layers sbctl nvidia_oc];
+          environment.systemPackages = with pkgs; [busybox toybox libcap jq  git-remote-gcrypt gnupg pinentry-curses chromium sbctl nvidia_oc];
           programs = {
             chromium = {enable = true;extraOpts = {"IncognitoModeAvailability" = 2;};};
-            sway = {enable = true;wrapperFeatures.gtk = true; package = pkgs.sway;  extraPackages = with pkgs; [foot rofi grim slurp mako ];};
-            gamescope = {enable = true;capSysNice = true;};
             gnupg.agent = { enable = true;enableSSHSupport = true; pinentryPackage = pkgs.pinentry-curses;};
-            steam = {enable = true; package =pkgs.steam.override
-               {extraEnv = {
-                 PROTON_ENABLE_WAYLAND="1";
-                 PROTON_ENABLE_NGX_UPDATER="1";
-                 DXVK_NVAPI_DRS_SETTINGS="NGX_DLSS_RR_OVERRIDE=on,NGX_DLSS_SR_OVERRIDE=on,NGX_DLSS_FG_OVERRIDE=on,NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest,NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest";
-                 PULSE_LATENCY_MSEC = "60";};};};
           };
-
-  
+          
           documentation.nixos.enable = false;
           systemd.services.nvidia-overclock = {
           description = "NVIDIA Overclocking Service";
@@ -198,7 +187,7 @@
           home-manager.users.nix = { pkgs, ... }: {
             home.stateVersion = "26.05";
             manual = { manpages.enable = false; html.enable = false; json.enable = false; };
-            home.packages = with pkgs; [ atuin btop carapace chromium fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
+            home.packages = with pkgs; [ atuin btop carapace  fzf helix starship zellij zoxide foot nerd-fonts.jetbrains-mono ];
             home.persistence."/persistent" = {
               directories = [ 
                 ".config" ".gnupg" ".local/share" ".steam" ".ssh"  ".var/app" "Documents" "Downloads" ];
