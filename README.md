@@ -20,11 +20,11 @@ A high-security, stateless configuration for NixOS on **Intel Core Ultra 200 ser
 parted /dev/nvme0n1 -- mklabel gpt
 
 # Create ESP (Partition 1 - 1.5GB for Lanzaboote)
-parted /dev/nvme0n1 -- mkpart ESP fat32 1MB 1500MB
-parted /dev/nvme0n1 -- set 1 esp on
+parted -a optimal /dev/nvme0n1 -- mkpart ESP fat32 1MB 1500MiB
+parted -a optimal /dev/nvme0n1 -- set 1 esp on
 
 # Create LUKS Container (Partition 2)
-parted /dev/nvme0n1 -- mkpart primary 1500MB 100%
+parted -a optimal /dev/nvme0n1 -- mkpart primary 1500MiB 100%
 
 # Setup Encryption
 cryptsetup luksFormat /dev/nvme0n1p2
@@ -34,10 +34,10 @@ cryptsetup open /dev/nvme0n1p2 enc
 ### 2. Btrfs Subvolumes for Impermanence
 ```bash
 # Format Boot
-mkfs.fat -F 32 -n boot /dev/nvme0n1p1
+mkfs.fat -F 32 -n BOOT /dev/nvme0n1p1
 
 # Format Root
-mkfs.btrfs -L root /dev/mapper/enc
+mkfs.btrfs -L ROOT /dev/mapper/enc
 
 # Create Subvolumes
 mount /dev/mapper/enc /mnt
