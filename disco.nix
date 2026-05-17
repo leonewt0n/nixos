@@ -1,3 +1,54 @@
-#README: (DO NOT USE YET) Add above filesystem option in flake.nix. Remove ALL disk sections of hardware.nix, adventually you will get rid of it.
-
-disko.devices = {disk = {main = {type = "disk";device = "/dev/nvme0n1";content = {type = "gpt";partitions = {ESP = {size = "512M";type = "EF00";content = {type = "filesystem";format = "vfat";mountpoint = "/boot";mountOptions = [ "umask=0077" ];};};luks = {size = "100%";content = {type = "luks";name = "enc";extraOpenArgs = [ "--allow-discards" ];content = {type = "btrfs";extraArgs = [ "-f" ];subvolumes = {"root" = {mountpoint = "/";mountOptions = [ "compress=zstd" "noatime" ];};"root-blank" = { };"nix" = {mountpoint = "/nix";mountOptions = [ "compress=zstd" "noatime" ];};"persistent" = {mountpoint = "/persistent";mountOptions = [ "compress=zstd" "noatime" "neededForBoot" ];};};};};};};};};};};
+{
+  disko.devices = {
+    disk = {
+      main = {
+        type = "disk";
+        device = "/dev/nvme0n1";
+        content = {
+          type = "gpt";
+          partitions = {
+            ESP = {
+              size = "1500M";
+              type = "EF00";
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "defaults" ];
+              };
+            };
+            luks = {
+              size = "100%";
+              content = {
+                type = "luks";
+                name = "enc"; # Matches your initrd rollback script
+                settings = {
+                  allowDiscards = true;
+                };
+                content = {
+                  type = "btrfs";
+                  extraArgs = [ "-f" ];
+                  subvolumes = {
+                    "/root" = {
+                      mountpoint = "/";
+                      mountOptions = [ "compress=zstd" ];
+                    };
+                    "/root-blank" = { }; # The pristine state for your rollback script
+                    "/nix" = {
+                      mountpoint = "/nix";
+                      mountOptions = [ "compress=zstd" "noatime" ];
+                    };
+                    "/persistent" = {
+                      mountpoint = "/persistent";
+                      mountOptions = [ "compress=zstd" ];
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}
